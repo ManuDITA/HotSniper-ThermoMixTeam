@@ -362,9 +362,21 @@ def multi_program():
 def test_static_power():
     run(['4.0GHz', 'testStaticPower', 'slowDVFS'], get_instance('parsec-blackscholes', 3, input_set='simsmall'))
 
+def ondemand_demo(dvfs = 'slowDVFS', freq = 4.0, threads = 4, workload = 'parsec-blackscholes'):
+    print('frequency {:.1f}GHz'.format(freq))
+    run(['{:.1f}GHz'.format(freq), 'ondemand', dvfs], get_instance(workload, threads, input_set='simsmall'))
+
+def coldestcore_demo():
+    threads = 3
+    run(['{:.1f}GHz'.format(4.0), 'ondemand', 'slowDVFS', 'coldestCore'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
+
 
 def main():
-    example()
+    # example()
+
+    ondemand_demo(dvfs = 'slowDVFS')
+    # coldestcore_demo()
+
     #test_static_power()
     # multi_program()
 
