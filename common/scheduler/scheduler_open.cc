@@ -26,6 +26,9 @@
 #include <iostream>
 #include <bits/stdc++.h>
 
+#include "policies/coldestCore.h"
+#include "policies/dvfsOndemand.h"
+
 using namespace std;
 
 int k=0;
@@ -307,6 +310,32 @@ void SchedulerOpen::initDVFSPolicy(String policyName) {
 		dvfsPolicy = NULL;
 	} else if (policyName == "maxFreq") {
 		dvfsPolicy = new DVFSMaxFreq(performanceCounters, coreRows, coreColumns, maxFrequency);
+	} else if (policyName == "ondemand") {
+		float upThreshold = Sim()->getCfg()->getFloat(
+			"scheduler/open/dvfs/ondemand/up_threshold");
+		float downThreshold = Sim()->getCfg()->getFloat(
+			"scheduler/open/dvfs/ondemand/down_threshold");
+		float dtmCriticalTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/dvfs/ondemand/dtm_cricital_temperature");
+		float dtmRecoveredTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/dvfs/ondemand/dtm_recovered_temperature");
+		dvfsPolicy = new DVFSOndemand(
+			performanceCounters,
+			coreRows,
+			coreColumns,
+			minFrequency,
+			maxFrequency,
+			frequencyStepSize,
+			upThreshold,
+			downThreshold,
+			dtmCriticalTemperature,
+			dtmRecoveredTemperature
+		);
+	} else if (policyName == "coldestCore") {
+		float criticalTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/coldestCore/criticalTemperature");
+		mappingPolicy = new ColdestCore(performanceCounters, coreRows,
+										coreColumns, criticalTemperature);
 	} else if (policyName == "testStaticPower") {
 		dvfsPolicy = new DVFSTestStaticPower(performanceCounters, coreRows, coreColumns, minFrequency, maxFrequency);
 	} else if (policyName == "fixedPower") {
