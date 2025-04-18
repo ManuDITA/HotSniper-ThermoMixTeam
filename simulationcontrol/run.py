@@ -370,11 +370,33 @@ def coldestcore_demo():
     threads = 3
     run(['{:.1f}GHz'.format(4.0), 'ondemand', 'slowDVFS', 'coldestCore'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
 
+def frequency_test(policy = 'maxFreq', temp = 'temp_unlimited', threshold = 'threshold_low'):
+    for benchmark in (
+                      # 'parsec-blackscholes',
+                      'parsec-streamcluster',
+                      ):
+
+        min_parallelism = get_feasible_parallelisms(benchmark)[0]
+        max_parallelism = get_feasible_parallelisms(benchmark)[-1]
+        for freq in (1,
+                     # 1.5, 2,
+                     2.5,
+                     # 3, 3.5,
+                     4):
+            #for parallelism in (max_parallelism,):
+            for parallelism in (4, ):
+                # you can also use try_run instead
+                run(['{:.1f}GHz'.format(freq), policy, 'slowDVFS', temp, threshold], get_instance(benchmark, parallelism, input_set='simsmall'))
+
+
 
 def main():
     # example()
 
-    ondemand_demo(dvfs = 'slowDVFS')
+    frequency_test()
+    frequency_test(policy='ondemand')
+    # frequency_test(policy='ondemand', temp='temp_normal', threshold='threshold_med')
+    #ondemand_demo(dvfs = 'slowDVFS')
     # coldestcore_demo()
 
     #test_static_power()
