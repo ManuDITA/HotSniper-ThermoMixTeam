@@ -14,12 +14,12 @@ def read_log_gz(filepath):
 def extract_total_power_series(df):
     return df.sum(axis=1)  # total power at each timestep
 
-def calculate_energy(power_series, timestep_s=0.001):
-    return power_series.sum() * timestep_s
+def calculate_energy(power_series, timestep_ms=1):
+    return power_series.sum() * timestep_ms
 
 def plot_total_power_over_time(runs, save_path):
-    for label, series in runs.items():
-        time = [i for i in range(len(series))]  # assuming 1ms steps
+    for label, (timestep, series) in runs.items():
+        time = [i * timestep for i in range(len(series))]
         plt.plot(time, series, label=label)
 
     plt.title("Power Over Time")
@@ -53,7 +53,7 @@ def plot_energy_bars(energy_dict, save_path):
     plt.close()
 
 
-def main(folders):
+def main(runs):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     chart_dir = os.path.join(script_dir, "charts")
     os.makedirs(chart_dir, exist_ok=True)
@@ -61,15 +61,27 @@ def main(folders):
     power_runs = {}
     energy_totals = {}
 
-    for folder in folders:
-        label = os.path.basename(os.path.normpath(folder)).split("+")[0][-6:]
+    parsed_runs = []
+    for entry in runs:
+        if ':' in entry:
+            folder, timestep_str, label = entry.split(':')
+            try:
+                timestep = float(timestep_str)
+                parsed_runs.append((folder, timestep, label))
+            except ValueError:
+                print(f"Invalid timestep for entry: {entry}, skipping.")
+        else:
+            print(f"Invalid format: {entry}. Use folder:timestep (e.g. run1:0.1), skipping.")
+
+    for folder, timestep, label in parsed_runs:
+        # label = os.path.basename(os.path.normpath(folder)).split("+")[2]#[0][-6:]
         filepath = os.path.join(folder, 'PeriodicPower.log.gz')
         if os.path.exists(filepath):
             print(f"Reading power data from: {filepath}")
             df = read_log_gz(filepath)
             total_power_series = extract_total_power_series(df)
-            total_energy = calculate_energy(total_power_series)
-            power_runs[label] = total_power_series
+            total_energy = calculate_energy(total_power_series, timestep)
+            power_runs[label] = (timestep, total_power_series)
             energy_totals[label] = total_energy
         else:
             print(f"File not found: {filepath}, skipping.")
@@ -88,7 +100,6 @@ def main(folders):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare total power usage over time and calculate total energy (Joules).")
-    parser.add_argument("folders", nargs='+', help="Paths to folders containing PeriodicPower.log.gz")
+    parser.add_argument("runs", nargs='+', help="Format: folder:timestep_ms:label (e.g. run1:0.1:1GHz)")
     args = parser.parse_args()
-
-    main(args.folders)
+    main(args.runs)

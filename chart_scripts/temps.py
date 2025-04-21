@@ -15,34 +15,46 @@ def extract_max_thermal_series(df):
     return df.max(axis=1)  # max across all cores/sensors per row
 
 def plot_max_thermal_over_time(runs, save_path):
-    for name, series in runs.items():
-        label = name.split("+")[0][-6:]
-        time = [i for i in range(len(series))]
+    for label, (timestep, series) in runs.items():
+        time = [i * timestep for i in range(len(series))]
         plt.plot(time, series, label=label)
 
-    plt.title("Max Temperature Over Time")
+    plt.title("Maximum Temperature Over Time")
     plt.xlabel("Time [ms]")
-    plt.ylabel("Temperature [C]")
+    plt.ylabel("Max Temperature [C]")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(save_path, dpi=300)
     plt.close()
 
-def main(folders):
+def main(runs):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     chart_dir = os.path.join(script_dir, "charts")
     os.makedirs(chart_dir, exist_ok=True)
 
     thermal_runs = {}
-    for folder in folders:
-        label = os.path.basename(os.path.normpath(folder))
+
+    parsed_runs = []
+    for entry in runs:
+        if ':' in entry:
+            folder, timestep_str, label = entry.split(':')
+            try:
+                timestep = float(timestep_str)
+                parsed_runs.append((folder, timestep, label))
+            except ValueError:
+                print(f"Invalid timestep for entry: {entry}, skipping.")
+        else:
+            print(f"Invalid format: {entry}. Use folder:timestep (e.g. run1:0.1), skipping.")
+
+    for folder, timestep, label in parsed_runs:
+        # label = os.path.basename(os.path.normpath(folder)).split("+")[2]#[0][-6:]
         filepath = os.path.join(folder, 'PeriodicThermal.log.gz')
         if os.path.exists(filepath):
             print(f"Reading thermal data from: {filepath}")
             df = read_log_gz(filepath)
             max_series = extract_max_thermal_series(df)
-            thermal_runs[label] = max_series
+            thermal_runs[label] = (timestep, max_series)
         else:
             print(f"File not found: {filepath}, skipping.")
 
@@ -54,8 +66,7 @@ def main(folders):
         print("No valid thermal data found.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Compare max thermal values over time from multiple folders.")
-    parser.add_argument("folders", nargs='+', help="Paths to folders containing PeriodicThermal.log.gz")
+    parser = argparse.ArgumentParser(description="Compare total power usage over time and calculate total energy (Joules).")
+    parser.add_argument("runs", nargs='+', help="Format: folder:timestep_ms:label (e.g. run1:0.1:1GHz)")
     args = parser.parse_args()
-
-    main(args.folders)
+    main(args.runs)
