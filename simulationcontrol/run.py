@@ -370,6 +370,10 @@ def coldestcore_demo():
     threads = 3
     run(['{:.1f}GHz'.format(4.0), 'ondemand', 'slowDVFS', 'coldestCore'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
 
+def hotPotato_demo():
+    threads = 4
+    run(['{:.1f}GHz'.format(2.0), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_70', 'rot_interval_20'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
+
 def frequency_test(policy = 'maxFreq', temp = 'temp_unlimited', threshold = 'threshold_low'):
     for benchmark in (
                       # 'parsec-blackscholes',
@@ -393,12 +397,12 @@ def frequency_test(policy = 'maxFreq', temp = 'temp_unlimited', threshold = 'thr
 def main():
     # example()
 
-    frequency_test()
-    frequency_test(policy='ondemand')
+    #frequency_test()
+    #frequency_test(policy='ondemand')
     # frequency_test(policy='ondemand', temp='temp_normal', threshold='threshold_med')
     #ondemand_demo(dvfs = 'slowDVFS')
     # coldestcore_demo()
-
+    hotPotato_demo()
     #test_static_power()
     # multi_program()
 

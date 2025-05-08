@@ -28,6 +28,7 @@
 
 #include "policies/coldestCore.h"
 #include "policies/dvfsOndemand.h"
+#include "policies/hotPotato.h"
 
 using namespace std;
 
@@ -336,6 +337,20 @@ void SchedulerOpen::initDVFSPolicy(String policyName) {
 			"scheduler/open/migration/coldestCore/criticalTemperature");
 		mappingPolicy = new ColdestCore(performanceCounters, coreRows,
 										coreColumns, criticalTemperature);
+	} else if (policyName == "hotPotato") {
+		float criticalTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/critical_temperature");
+		float recoveryTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/recovery_temperature");
+		float rotationIncrementStep = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/rotation_increment_step");
+		float rotationStartInterval = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/rotation_start_interval");
+		float rotationMinInterval = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/rotation_min_interval");
+		mappingPolicy = new HotPotato(performanceCounters, coreRows,
+										coreColumns, criticalTemperature, recoveryTemperature, 
+										rotationIncrementStep, rotationStartInterval, rotationMinInterval);
 	} else if (policyName == "testStaticPower") {
 		dvfsPolicy = new DVFSTestStaticPower(performanceCounters, coreRows, coreColumns, minFrequency, maxFrequency);
 	} else if (policyName == "fixedPower") {
@@ -364,6 +379,27 @@ void SchedulerOpen::initMigrationPolicy(String policyName) {
 	if (policyName == "off") {
 		migrationPolicy = NULL;
 	} //else if (policyName ="XYZ") {... } //Place to instantiate a new migration logic. Implementation is put in "policies" package.
+	else if (policyName == "coldestCore") {
+		float criticalTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/coldestCore/criticalTemperature");
+		migrationPolicy = new ColdestCore(performanceCounters, coreRows,
+										coreColumns, criticalTemperature);
+	}
+	else if (policyName == "hotPotato") {
+		float criticalTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/critical_temperature");
+		float recoveryTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/recovery_temperature");
+		float rotationIncrementStep = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/rotation_increment_step");
+		float rotationStartInterval = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/rotation_start_interval");
+		float rotationMinInterval = Sim()->getCfg()->getFloat(
+			"scheduler/open/migration/hotPotato/rotation_min_interval");
+		migrationPolicy = new HotPotato(performanceCounters, coreRows,
+										coreColumns, criticalTemperature, recoveryTemperature, 
+										rotationIncrementStep, rotationStartInterval, rotationMinInterval);
+	}
 	else {
 		cout << "\n[Scheduler] [Error]: Unknown Migration Algorithm" << endl;
  		exit (1);
