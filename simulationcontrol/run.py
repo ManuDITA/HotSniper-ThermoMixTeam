@@ -374,6 +374,15 @@ def hotPotato_demo():
     threads = 4
     run(['{:.1f}GHz'.format(2.0), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_70', 'rot_interval_20'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
 
+def coldestcore_ondemand_multi_demo():
+    run(['{:.1f}Ghz'.format(2.4), 'maxFreq', 'slowDVFS'], 'parsec-streamcluster-simsmall-1,parsec-blackscholes-simsmall-1')
+
+def coldestcore_ondemand_multi_bs_demo():
+    run(['{:.1f}Ghz'.format(2.4), 'maxFreq', 'slowDVFS'], 'parsec-blackscholes-simsmall-1,parsec-blackscholes-simsmall-1')
+
+def coldestcore_ondemand_multi_sc_demo():
+    run(['{:.1f}Ghz'.format(2.4), 'maxFreq', 'slowDVFS'], 'parsec-streamcluster-simsmall-1,parsec-streamcluster-simsmall-1')
+
 def frequency_test(policy = 'maxFreq', temp = 'temp_unlimited', threshold = 'threshold_low'):
     for benchmark in (
                       # 'parsec-blackscholes',
