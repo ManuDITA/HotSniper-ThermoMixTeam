@@ -372,7 +372,17 @@ def coldestcore_demo():
 
 def hotPotato_demo():
     threads = 4
-    run(['{:.1f}GHz'.format(2.0), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_70', 'rot_interval_20'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
+    for interval in ('rot_interval_1ms', 'rot_interval_5ms', 'rot_interval_50us'):
+        run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_80', interval], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
+
+def hotPotato_sc():
+    threads = 4
+    run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_80', 'rot_interval_1ms'], get_instance('parsec-streamcluster', threads, input_set='simsmall'))
+
+def hotPotato_multi():
+    threads = 4
+    run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_80', 'rot_interval_1ms'], 'parsec-blackscholes-simsmall-1,parsec-blackscholes-simsmall-1')
+
 
 def coldestcore_ondemand_multi_demo():
     run(['{:.1f}Ghz'.format(2.4), 'maxFreq', 'slowDVFS'], 'parsec-streamcluster-simsmall-1,parsec-blackscholes-simsmall-1')
@@ -412,6 +422,9 @@ def main():
     #ondemand_demo(dvfs = 'slowDVFS')
     # coldestcore_demo()
     hotPotato_demo()
+    #hotPotato_multi()
+    #hotPotato_sc()
+    
     #test_static_power()
     # multi_program()
 
