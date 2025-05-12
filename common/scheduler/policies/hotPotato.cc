@@ -64,29 +64,27 @@ std::vector<migration> HotPotato::migrate(
     //Keep track of task ids
     std::vector<int> newTaskIds(taskIds);
 
-    for (int c = 0; c < coreRows * coreColumns; c++) {
-        if (activeCores.at(c) && taskIds.at(c) != -1) {
+    size_t cores = coreRows * coreColumns;
+    bool swapHappened = false;
+    for (int c = 0; c < cores; c++) {
+        if (activeCores.at(c) && (c != cores-1 || !swapHappened)) {
 
             //Find the next core
-            int nextCore = (c+1) % (coreRows * coreColumns);
+            int nextCore = (c+1) % cores;
 
-            cout << "[Scheduler][hotPotato-migrate]: core" << c
-                     << " migrate to core " << nextCore;
+            cout << "[Scheduler][hotPotato-migrate]: core " << c
+                     << " migrate to core " << nextCore << endl;
             //Since next core is free, perform migraion
             migration m;
             m.fromCore = c;
             m.toCore = nextCore;
-
-            m.swap = (taskIds.at(nextCore) != -1); // Enable swap if target is occupied
+            m.swap = taskIds.at(nextCore) != -1;
             migrations.push_back(m);
 
             //Swap task ids in list
-            if(m.swap){
-                std::swap(newTaskIds.at(c), newTaskIds.at(nextCore));
-            }else{
-                newTaskIds.at(nextCore) = newTaskIds.at(c);
-                newTaskIds.at(c) = -1;
-            }
+            newTaskIds.at(nextCore) = newTaskIds.at(c);
+
+            swapHappened = true;
         }
     }
     return migrations;

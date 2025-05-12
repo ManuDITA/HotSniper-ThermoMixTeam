@@ -368,20 +368,48 @@ def ondemand_demo(dvfs = 'slowDVFS', freq = 4.0, threads = 4, workload = 'parsec
 
 def coldestcore_demo():
     threads = 3
-    run(['{:.1f}GHz'.format(4.0), 'ondemand', 'slowDVFS', 'coldestCore'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
+    run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'fastDVFS', 'coldestCore'], get_instance('parsec-streamcluster', threads, input_set='simsmall'))
 
 def hotPotato_demo():
-    threads = 4
-    for interval in ('rot_interval_1ms', 'rot_interval_5ms', 'rot_interval_50us'):
-        run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_80', interval], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
+    threads = 3 
+    for interval in ('rot_interval_1ms', ):#'rot_interval_5ms', 'rot_interval_50us'):
+        run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'fastDVFS', 'hotPotato', 'crit_temp_80', interval], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
 
-def hotPotato_sc():
+def hotPotato_dvfs():
     threads = 4
-    run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_80', 'rot_interval_1ms'], get_instance('parsec-streamcluster', threads, input_set='simsmall'))
+    run(['{:.1f}GHz'.format(2.5), 'ondemand', 'slowDVFS', 'hotPotato', 'crit_temp_80', 'rot_interval_1ms', 'rot_step_none', 'threshold_low', 'temp_normal'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
 
 def hotPotato_multi():
     threads = 4
-    run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_80', 'rot_interval_1ms'], 'parsec-blackscholes-simsmall-1,parsec-blackscholes-simsmall-1')
+    run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_80', 'rot_interval_1ms', 'rot_step_none'], 'parsec-blackscholes-simsmall-1,parsec-blackscholes-simsmall-1')
+
+def hotPotato_all():
+    
+    freq = 2.5
+    threads = 4
+    for benchmark in (
+                      'parsec-blackscholes',
+                      #'parsec-streamcluster',
+                      ):
+
+        min_parallelism = get_feasible_parallelisms(benchmark)[0]
+        max_parallelism = get_feasible_parallelisms(benchmark)[-1]
+        for interval in ('rot_interval_1ms',
+                         #'rot_interval_5ms',
+                         #'rot_interval_100us',
+                         #'rot_interval_10ms',
+                         ):
+            for step in ('rot_step_none', 
+                         #'rot_step_100us', 
+                         #'rot_step_500us'
+                         ):
+                print("Running {} with {} threads, {} and {}".format(benchmark, threads, interval, step))
+                # you can also use try_run instead
+                run(['{:.1f}GHz'.format(freq), 'maxFreq', 'slowDVFS', 'hotPotato', 'crit_temp_80', interval, step], get_instance(benchmark, threads, input_set='simsmall'))
+
+
+def coldestcore_baseline():
+    run(['{:.1f}GHz'.format(2.5), 'maxFreq', 'slowDVFS', 'coldestCore'], get_instance('parsec-blackscholes', 3, input_set='simsmall'))
 
 
 def coldestcore_ondemand_multi_demo():
@@ -420,10 +448,10 @@ def main():
     #frequency_test(policy='ondemand')
     # frequency_test(policy='ondemand', temp='temp_normal', threshold='threshold_med')
     #ondemand_demo(dvfs = 'slowDVFS')
-    # coldestcore_demo()
-    hotPotato_demo()
+    #coldestcore_demo()
+    #hotPotato_all()
     #hotPotato_multi()
-    #hotPotato_sc()
+    hotPotato_dvfs()
     
     #test_static_power()
     # multi_program()

@@ -1323,7 +1323,7 @@ void SchedulerOpen::executeMigrationPolicy(SubsecondTime time) {
 
 		if (migration.swap) {
 			if (systemCores.at(migration.toCore).assignedTaskID == -1) {
-				cout << "\n[Scheduler][Error]: Migration Policy ordered swap with unused core.\n";		
+				cout << "\n[Scheduler][Error]: Migration Policy ordered swap with unused core.\n";
 				exit (1);
 			}
 			int taskFrom = systemCores.at(migration.fromCore).assignedTaskID;
