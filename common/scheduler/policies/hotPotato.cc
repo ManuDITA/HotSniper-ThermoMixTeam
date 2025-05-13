@@ -61,16 +61,22 @@ std::vector<migration> HotPotato::migrate(
         rotationInterval = rotationStartInterval;
     }
 
+    size_t cores = coreRows * coreColumns;
+
     //Keep track of task ids
     std::vector<int> newTaskIds(taskIds);
 
-    size_t cores = coreRows * coreColumns;
-    bool swapHappened = false;
     for (int c = 0; c < cores; c++) {
-        if (activeCores.at(c) && (c != cores-1 || !swapHappened)) {
-
-            //Find the next core
+        if (activeCores.at(c) && taskIds.at(c) == 0) {
+            //Find the next core. If the next core is also the master, go one ahead
             int nextCore = (c+1) % cores;
+            cout << "[Scheduler][hotPotato-migrate]: Next core is " << nextCore
+                    << endl;
+            if(activeCores.at(nextCore) && taskIds.at(nextCore) == 0){
+                nextCore = (nextCore + 1) % cores;
+                cout << "[Scheduler][hotPotato-migrate]: Next core was also a 0 task. New core is " 
+                << nextCore << endl;
+            }   
 
             cout << "[Scheduler][hotPotato-migrate]: core " << c
                      << " migrate to core " << nextCore << endl;
@@ -83,8 +89,6 @@ std::vector<migration> HotPotato::migrate(
 
             //Swap task ids in list
             newTaskIds.at(nextCore) = newTaskIds.at(c);
-
-            swapHappened = true;
         }
     }
     return migrations;
