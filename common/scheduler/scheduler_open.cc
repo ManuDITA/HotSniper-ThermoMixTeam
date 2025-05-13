@@ -28,6 +28,7 @@
 
 #include "policies/coldestCore.h"
 #include "policies/dvfsOndemand.h"
+#include "policies/dvfsGrad.h"
 #include "policies/hotPotato.h"
 
 using namespace std;
@@ -306,7 +307,7 @@ void SchedulerOpen::initMappingPolicy(String policyName) {
  * Initialize the DVFS policy to the policy with the given name
  */
 void SchedulerOpen::initDVFSPolicy(String policyName) {
-	cout << "[Scheduler] [Info]: Initializing DVFS policy" << endl;
+	cout << "[Scheduler] [Info]: Initializing DVFS policy " + policyName << endl;
 	if (policyName == "off") {
 		dvfsPolicy = NULL;
 	} else if (policyName == "maxFreq") {
@@ -321,6 +322,27 @@ void SchedulerOpen::initDVFSPolicy(String policyName) {
 		float dtmRecoveredTemperature = Sim()->getCfg()->getFloat(
 			"scheduler/open/dvfs/ondemand/dtm_recovered_temperature");
 		dvfsPolicy = new DVFSOndemand(
+			performanceCounters,
+			coreRows,
+			coreColumns,
+			minFrequency,
+			maxFrequency,
+			frequencyStepSize,
+			upThreshold,
+			downThreshold,
+			dtmCriticalTemperature,
+			dtmRecoveredTemperature
+		);
+	} else if (policyName == "grad") {
+		float upThreshold = Sim()->getCfg()->getFloat(
+			"scheduler/open/dvfs/grad/up_threshold");
+		float downThreshold = Sim()->getCfg()->getFloat(
+			"scheduler/open/dvfs/grad/down_threshold");
+		float dtmCriticalTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/dvfs/grad/dtm_cricital_temperature");
+		float dtmRecoveredTemperature = Sim()->getCfg()->getFloat(
+			"scheduler/open/dvfs/grad/dtm_recovered_temperature");
+		dvfsPolicy = new DVFSGrad(
 			performanceCounters,
 			coreRows,
 			coreColumns,
