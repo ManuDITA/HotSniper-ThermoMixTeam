@@ -14,7 +14,9 @@ HotPotato::HotPotato(const PerformanceCounters *performanceCounters,
       criticalTemperature(criticalTemperature), recoveryTemperature(recoveryTemperature),
       rotationIncrementStep(rotationIncrementStep), 
       rotationStartInterval(rotationStartInterval), rotationInterval(rotationStartInterval),
-      rotationMinInterval(rotationMinInterval) {}
+      rotationMinInterval(rotationMinInterval) {
+        masterCore.push(0);
+      }
 
 std::vector<int> HotPotato::map(String taskName, int taskCoreRequirement,
 const std::vector<bool> &availableCoresRO,
@@ -65,30 +67,44 @@ std::vector<migration> HotPotato::migrate(
 
     //Keep track of task ids
     std::vector<int> newTaskIds(taskIds);
+    int masterCount = masterCore.size();
 
     for (int c = 0; c < cores; c++) {
-        if (activeCores.at(c) && taskIds.at(c) == 0) {
-            //Find the next core. If the next core is also the master, go one ahead
-            int nextCore = (c+1) % cores;
-            cout << "[Scheduler][hotPotato-migrate]: Next core is " << nextCore
-                    << endl;
-            if(activeCores.at(nextCore) && taskIds.at(nextCore) == 0){
-                nextCore = (nextCore + 1) % cores;
-                cout << "[Scheduler][hotPotato-migrate]: Next core was also a 0 task. New core is " 
-                << nextCore << endl;
+        for (int j = 0; j < masterCount; j++) {
+            //Pop first master core and set it as the current master
+            int currentMaster = masterCore.front();
+            masterCore.pop();
+
+            if (activeCores.at(c) && c == currentMaster) {
+                //Find the next core. If the next core is also the master, go one ahead
+                int nextCore = (c+1) % cores;
+                cout << "[Scheduler][hotPotato-migrate]: Next core is " << nextCore
+                        << endl;
+
+                //Check if next core is free and we have another master core
+                //If next core has adifferent task id, that must mean it is another master
+                if(taskIds.at(c) != taskIds.at(nextCore) && activeCores.at(nextCore)){
+                    masterCore.push(nextCore);
+                    nextCore = (nextCore + 1) % cores;
+                    masterCount++;
+                    cout << "[Scheduler][hotPotato-migrate]: Next core was also a 0 task. New core is " 
+                    << nextCore << endl;
+                }  
+
+                masterCore.push(nextCore);
+
+                cout << "[Scheduler][hotPotato-migrate]: core " << c
+                        << " migrate to core " << nextCore << endl;
+                //Since next core is free, perform migraion
+                migration m;
+                m.fromCore = c;
+                m.toCore = nextCore;
+                m.swap = taskIds.at(nextCore) != -1;
+                migrations.push_back(m);
+
+                //Swap task ids in list
+                newTaskIds.at(nextCore) = newTaskIds.at(c);
             }   
-
-            cout << "[Scheduler][hotPotato-migrate]: core " << c
-                     << " migrate to core " << nextCore << endl;
-            //Since next core is free, perform migraion
-            migration m;
-            m.fromCore = c;
-            m.toCore = nextCore;
-            m.swap = taskIds.at(nextCore) != -1;
-            migrations.push_back(m);
-
-            //Swap task ids in list
-            newTaskIds.at(nextCore) = newTaskIds.at(c);
         }
     }
     return migrations;

@@ -6,6 +6,7 @@
 #ifndef __HOTPOTATO_H
 #define __HOTPOTATO_H
 #include <vector>
+#include <queue>
 
 #include "mappingpolicy.h"
 #include "migrationpolicy.h"
@@ -33,6 +34,7 @@ class HotPotato : public MappingPolicy, public MigrationPolicy {
     float rotationStartInterval;
     float rotationMinInterval;
     float rotationInterval;
+    std::queue<int> masterCore;
 
     void logTemperatures(const std::vector<bool> &availableCores);
 };
