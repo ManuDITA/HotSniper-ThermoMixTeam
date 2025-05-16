@@ -35,6 +35,7 @@ class HotPotato : public MappingPolicy, public MigrationPolicy {
     float rotationMinInterval;
     float rotationInterval;
     std::queue<int> masterCore;
+    int totalMasters;
 
     void logTemperatures(const std::vector<bool> &availableCores);
 };
