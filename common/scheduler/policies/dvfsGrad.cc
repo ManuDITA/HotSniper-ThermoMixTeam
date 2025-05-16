@@ -20,6 +20,7 @@ DVFSGrad::DVFSGrad(const PerformanceCounters *performanceCounters,
       dtmCriticalTemperature(dtmCriticalTemperature),
       dtmRecoveredTemperature(dtmRecoveredTemperature) {
         cout << "[Scheduler][grad-DTM]: initialized" << endl;
+        freqStep = (int)(1000 * frequencyStepSize + 0.5);
       }
 std::vector<int> DVFSGrad::getFrequencies(
     const std::vector<int> &oldFrequencies,
@@ -51,12 +52,26 @@ std::vector<int> DVFSGrad::getFrequencies(
                 // use same period for upscaling and downscaling as described
                 // in "The grad governor."
                 if (utilization > upThreshold) {
-                    cout << " -> go to max frequency" << endl;
-                    float multiplier = (dtmRecoveredTemperature + ((dtmCriticalTemperature - dtmRecoveredTemperature) / 2)) - temperature;
-                    frequency = frequency + 100 * multiplier;
-                    if (frequency > maxFrequency)
-                        frequency = maxFrequency;
-    
+                    cout << " -> try to increase frequency" << endl;
+                    float midpoint = dtmRecoveredTemperature + ((dtmCriticalTemperature - dtmRecoveredTemperature) / 2);
+
+//                    if (temperature > midpoint){
+//                        cout << "Exceeded midpoint, try to recover" << endl;
+//                        frequency /= 2;    
+//                    }
+                    //else {
+                        float multiplier = dtmRecoveredTemperature - temperature;
+                        int change = 100 * multiplier;
+                        if (change < 0){
+                            change *= 4;
+                        } else if (change > freqStep) {
+                            change = freqStep;
+                        }
+
+                        frequency = frequency + change;
+                        if (frequency > maxFrequency)
+                            frequency = maxFrequency;
+                    //}
                 } else if (utilization < downThreshold) {
                     cout
                         << "[Scheduler][grad]: utilization < downThreshold";

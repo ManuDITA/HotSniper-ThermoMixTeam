@@ -377,7 +377,7 @@ def hotPotato_demo():
 
 def hotPotato_dvfs():
     threads = 4
-    run(['{:.1f}GHz'.format(2.5), 'grad', 'mediumDVFS', 'hotPotato', 'crit_temp_80', 'rot_interval_2.5ms', 'rot_step_none', 'threshold_low', 'temp_normal'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
+    run(['{:.1f}GHz'.format(3.5), 'grad', 'fastDVFS', 'hotPotato', 'crit_temp_80', 'rot_interval_1ms', 'rot_step_none', 'threshold_low', 'temp_normal'], get_instance('parsec-blackscholes', threads, input_set='simsmall'))
 
 def hotPotato_multi():
     threads = 4

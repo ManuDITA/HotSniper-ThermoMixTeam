@@ -34,6 +34,7 @@ class DVFSGrad : public DVFSPolicy {
     float dtmRecoveredTemperature;
     bool in_throttle_mode = false;
     bool throttle();
+    int freqStep;
 };
 #endif
 
